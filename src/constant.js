@@ -14,3 +14,9 @@ export const MAIN_PLAYER = {
   frontWalk: 'misa-front-walk',
   backWalk: 'misa-back-walk'
 }
+
+export const OBJECT = {
+  object: "Objects",
+  spawn: "Spawn Point",
+  wrap: "Wrap Point",
+}

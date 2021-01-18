@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import tiles from '../assets/tilesets/tuxmon-sample-32px-extruded.png';
-import map from '../assets/tilemaps/tuxemon-town.json';
+import map from '../assets/tilemaps/jungle/tuxemon-jungle.json';
 import atlasImg from '../assets/atlas/atlas.png';
 import atlasData from '../assets/atlas/atlas.json';
 import { MAIN_PLAYER } from '../constant';

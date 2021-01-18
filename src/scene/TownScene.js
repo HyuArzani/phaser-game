@@ -4,7 +4,7 @@ import tiles from '../assets/tilesets/tuxmon-sample-32px-extruded.png';
 import map from '../assets/tilemaps/tuxemon-town.json';
 import atlasImg from '../assets/atlas/atlas.png';
 import atlasData from '../assets/atlas/atlas.json';
-import { MAIN_PLAYER } from '../constant';
+import { MAIN_PLAYER, OBJECT } from '../constant';
 
 export default class TownScene extends Phaser.Scene
 {
@@ -45,8 +45,10 @@ export default class TownScene extends Phaser.Scene
 
         // Object layers in Tiled let you embed extra info into a map - like a spawn point or custom
         // collision shapes. In the tmx file, there's an object layer with a point named "Spawn Point"
-        const spawnPoint = map.findObject("Objects", obj => obj.name === "Spawn Point");
-        
+        const spawnPoint = map.findObject(OBJECT.object, obj => obj.name === OBJECT.spawn);
+        const wrapA = map.findObject(OBJECT.object, obj => obj.name === `${OBJECT.wrap} A`);
+        const wrapB = map.findObject(OBJECT.object, obj => obj.name === `${OBJECT.wrap} B`);
+
         const playerObj = PlayerFunc.createPlayer({
             physics: this.physics,
             spawnPoint,
@@ -56,6 +58,14 @@ export default class TownScene extends Phaser.Scene
         }, worldLayer, map, this.cameras.main);
         this.player = playerObj.player;
         this.cursors = this.input.keyboard.createCursorKeys();
+
+        this.physics.add.collider(this.player, wrapA, () => {
+            console.log('COLLIDE A');
+        })
+
+        this.physics.add.collider(this.player, wrapB, () => {
+            console.log('COLLIDE B');
+        })
 
         // Help text that has a "fixed" position on the screen
         /* this.add
