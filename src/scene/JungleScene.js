@@ -3,6 +3,7 @@ import tiles from '../assets/tilesets/tuxmon-sample-32px-extruded.png';
 import map from '../assets/tilemaps/tuxemon-town.json';
 import atlasImg from '../assets/atlas/atlas.png';
 import atlasData from '../assets/atlas/atlas.json';
+import { MAIN_PLAYER } from '../constant';
 
 export default class JungleScene extends Phaser.Scene
 {
@@ -18,7 +19,7 @@ export default class JungleScene extends Phaser.Scene
     {
         this.load.image("tiles", tiles);
         this.load.tilemapTiledJSON("map", map);
-        this.load.atlas("atlas", atlasImg, atlasData);
+        this.load.atlas(MAIN_PLAYER.atlas, atlasImg, atlasData);
         // this.load.image('logo', logoImg);
     }
       
@@ -47,65 +48,14 @@ export default class JungleScene extends Phaser.Scene
 
         // Create a sprite with physics enabled via the physics system. The image used for the sprite has
         // a bit of whitespace, so I'm using setSize & setOffset to control the size of the player's body.
-        this.player = this.physics.add
-            .sprite(spawnPoint.x, spawnPoint.y, "atlas", "misa-front")
-            .setSize(30, 40)
-            .setOffset(0, 24);
-
-        // Watch the player and worldLayer for collisions, for the duration of the scene:
-        this.physics.add.collider(this.player, worldLayer);
-
-        // Create the player's walking animations from the texture atlas. These are stored in the global
-        // animation manager so any sprite can access them.
-        const anims = this.anims;
-        anims.create({
-            key: "misa-left-walk",
-            frames: anims.generateFrameNames("atlas", {
-            prefix: "misa-left-walk.",
-            start: 0,
-            end: 3,
-            zeroPad: 3
-            }),
-            frameRate: 10,
-            repeat: -1
-        });
-        anims.create({
-            key: "misa-right-walk",
-            frames: anims.generateFrameNames("atlas", {
-            prefix: "misa-right-walk.",
-            start: 0,
-            end: 3,
-            zeroPad: 3
-            }),
-            frameRate: 10,
-            repeat: -1
-        });
-        anims.create({
-            key: "misa-front-walk",
-            frames: anims.generateFrameNames("atlas", {
-            prefix: "misa-front-walk.",
-            start: 0,
-            end: 3,
-            zeroPad: 3
-            }),
-            frameRate: 10,
-            repeat: -1
-        });
-        anims.create({
-            key: "misa-back-walk",
-            frames: anims.generateFrameNames("atlas", {
-            prefix: "misa-back-walk.",
-            start: 0,
-            end: 3,
-            zeroPad: 3
-            }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        const camera = this.cameras.main;
-        camera.startFollow(this.player);
-        camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        const playerObj = PlayerFunc.createPlayer({
+            physics: this.physics,
+            spawnPoint,
+            anims: this.anims,
+            atlasInit: MAIN_PLAYER.front,
+            ...MAIN_PLAYER,
+        }, worldLayer, map, this.cameras.main);
+        this.player = playerObj.player;
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -139,46 +89,8 @@ export default class JungleScene extends Phaser.Scene
     }
 
     update(time, delta) {
-        const speed = 175;
-        const prevVelocity = this.player.body.velocity.clone();
-
-        // Stop any previous movement from the last frame
-        this.player.body.setVelocity(0);
-
-        // Horizontal movement
-        if (this.cursors.left.isDown) {
-            this.player.body.setVelocityX(-speed);
-        } else if (this.cursors.right.isDown) {
-            this.player.body.setVelocityX(speed);
-        }
-
-        // Vertical movement
-        if (this.cursors.up.isDown) {
-            this.player.body.setVelocityY(-speed);
-        } else if (this.cursors.down.isDown) {
-            this.player.body.setVelocityY(speed);
-        }
-
-        // Normalize and scale the velocity so that player can't move faster along a diagonal
-        this.player.body.velocity.normalize().scale(speed);
-
-        // Update the animation last and give left/right animations precedence over up/down animations
-        if (this.cursors.left.isDown) {
-            this.player.anims.play("misa-left-walk", true);
-        } else if (this.cursors.right.isDown) {
-            this.player.anims.play("misa-right-walk", true);
-        } else if (this.cursors.up.isDown) {
-            this.player.anims.play("misa-back-walk", true);
-        } else if (this.cursors.down.isDown) {
-            this.player.anims.play("misa-front-walk", true);
-        } else {
-            this.player.anims.stop();
-
-            // If we were moving, pick and idle frame to use
-            if (prevVelocity.x < 0) this.player.setTexture("atlas", "misa-left");
-            else if (prevVelocity.x > 0) this.player.setTexture("atlas", "misa-right");
-            else if (prevVelocity.y < 0) this.player.setTexture("atlas", "misa-back");
-            else if (prevVelocity.y > 0) this.player.setTexture("atlas", "misa-front");
-        }
+        PlayerFunc.updatePlayer({
+            player: this.player, ...MAIN_PLAYER
+        }, this.cursors)
     }
 }
